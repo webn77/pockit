@@ -1,0 +1,8 @@
+{
+  "project": "고위험 도메인 LLM 가드레일 스타터킷",
+  "slug": "llm-guardrail-starterkit",
+  "mode": "git-files",
+  "github_sync": false,
+  "created": "2026-06-19",
+  "portfolio": { "category": "바이브코딩", "item": "AT-23", "status": "실험중" }
+}

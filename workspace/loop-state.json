@@ -1,0 +1,8 @@
+{
+  "goal": "GOAL-1",
+  "active_issue": "ISSUE-001",
+  "phase": "discovery",
+  "next_command": "ISSUE-001 start",
+  "last_step": "product:goal + product:roadmap",
+  "updated": "2026-06-19"
+}

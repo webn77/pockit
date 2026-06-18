@@ -1,0 +1,13 @@
+# 고위험 도메인 LLM 가드레일 스타터킷 — Phase 1 (결제 PoC)
+# 임베디드 Chroma + venv. Docker/Poetry 미사용(flat).
+# LLM = Claude 구독(claude CLI) 기반 → anthropic/langchain-anthropic 불필요.
+
+langgraph>=0.2.0
+langchain-core>=0.3.0          # LangGraph 의존 + 메시지/State 타입
+chromadb>=0.5.0
+sentence-transformers>=3.0.0   # 다국어 임베딩(paraphrase-multilingual-MiniLM)
+mcp>=1.0.0
+python-dotenv>=1.0.0
+
+# 평가 단계(Workflow 6)에서 사용
+ragas>=0.2.0
