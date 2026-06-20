@@ -16,10 +16,10 @@ from typing import Any, Literal, Optional, TypedDict
 from langgraph.graph import START, END, StateGraph
 from langgraph.checkpoint.memory import MemorySaver
 
-from src.rag import search_policy
-from src.gate import evaluate, GateDecision
-from src.tools import get_transaction, calc_fee, issue_refund
-from src.llm_client import complete_json
+from src.core.rag.retriever import search_policy
+from src.core.gate.risk_gate import evaluate, GateDecision
+from src.adapters.payment.tools.payment_tools import get_transaction, calc_fee, issue_refund
+from src.core.llm_client import complete_json
 
 # 툴 디스패치 — 순수 함수 1벌을 그대로 호출(로직 중복 없음)
 TOOLS = {
@@ -76,6 +76,12 @@ def assistant(state: State) -> dict:
 
 def gate_node(state: State) -> dict:
     """risk_gate 판정 — LLM 없음. LLM 출력은 비결정론이라 tool 누락을 가드."""
+    # 0) Destructive request pre-filtering
+    query_lower = (state.get("query") or "").lower()
+    if any(k in query_lower for k in ["삭제", "delete", "remove", "clear", "destroy"]):
+        d = GateDecision("BLOCK", "보안 정책 위반: 파괴적이거나 권한 없는 리소스 변경 시도 감지", requires_human=True)
+        return {"gate": d.to_dict()}
+
     sel = state.get("selection") or {}
     tool = sel.get("tool")
     if not tool:

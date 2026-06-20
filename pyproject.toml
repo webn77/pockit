@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pockit"
+version = "0.1.0"
+description = "Just-In-Time Guardrail Engine for Enterprise LLM Agents"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "langgraph>=0.2.0",
+    "langchain-core>=0.3.0",
+    "chromadb>=0.5.0",
+    "sentence-transformers>=3.0.0",
+    "mcp>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "ragas>=0.2.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]

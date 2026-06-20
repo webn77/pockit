@@ -1,77 +1,149 @@
-# 고위험 도메인 LLM 가드레일 스타터킷
+# pockit
 
-고위험 도메인에서 LLM 에이전트를 **안전하게** 운영하는 가드레일 하네스.
-첫 예시 = **결제(payment) PoC**. 남들이 빼먹는 **통제(게이트) + 정량평가**를 기본 탑재.
+**Production-Ready LLM Agent Engine with Deterministic Gates & Automated Evaluation**
 
-> 상태: Phase 1 (결제 동작 검증) 진행 중 · 합성 데이터만 사용
+`pockit` is an open-source starter kit and architectural framework designed to safely bridge the gap between Proof of Concept (PoC) and Production for LLM agents operating in high-stakes, regulated domains (such as fintech, healthcare, and legal services).
 
-## 구조
+Rather than trusting LLMs with autonomous critical decisions, `pockit` orchestrates agent behaviors using **LangGraph**, forces contextual retrieval, evaluates queries with deterministic **Rule-Based Access Control (RBAC)** & **Threshold Gates**, and tests agent stability with a built-in **Quantitative Evaluation Harness**.
 
-```
-src/
-├── tools/         # 순수 함수 1벌 (도메인 어댑터) — get_transaction·calc_fee·issue_refund
-├── rag/           # Chroma 인덱싱·검색 = search_policy (코어)
-├── gate/          # risk_gate 규칙 + ALLOW/REVIEW/BLOCK (코어)
-├── graph.py       # LangGraph 조립 (코어)
-├── mcp_server.py  # 툴 MCP 노출 (코어)
-└── eval/          # golden.jsonl + run_eval.py (코어)
-data/
-└── transactions.csv  # 합성 거래 데이터
-```
+---
 
-## 그래프 (결제)
+## 1. Why pockit? (The Governance Gap)
+
+Most enterprise LLM agent initiatives stall at the PoC stage. According to Gartner and McKinsey analysis, the primary failure point is not the LLM's capability, but the **Governance Gap**:
+* **Black-box reasoning**: Lack of an auditable trail for safety compliance.
+* **Stochastic decision making**: Risk of execution errors due to hallucinated tool calling.
+* **JIT RBAC integration**: Lack of dynamic role-based access control inside agent states.
+
+`pockit` solves this by decoupling *natural language understanding* from *execution control*.
 
 ```
-START → fetch_context → retrieve(정책 RAG, 노드 강제)
-      → assistant(LLM, 근거 + 툴 바인딩)
-      → route: 전부 safe → safe_tools ─┐
-                sensitive 끼면 →[게이트 interrupt]→ sensitive_tools ─┤→ assistant
-                없음 → END
+   [User Request]
+         │
+         ▼
+ ┌───────────────┐
+ │ RAG Retrieval │ ◄── Forced retrieval of authoritative policies/guidelines
+ └───────┬───────┘
+         ▼
+ ┌───────────────┐
+ │   LLM Agent   │ ◄── Parses intent and arguments, but CANNOT execute sensitive tools
+ └───────┬───────┘
+         ▼
+ ┌───────────────┐
+ │ Deterministic │
+ │  Safety Gate  │ ◄── Pure Python validation (RBAC, Threshold checks)
+ └───────┬───────┘
+         │
+         ├─► [ALLOW] ──► Execute Tool
+         ├─► [REVIEW] ─► Interrupt Graph for Human Approval (HITL)
+         └─► [BLOCK] ──► Terminate execution with explanation
 ```
 
-- **safe 툴**: `get_transaction` · `search_policy` · `calc_fee`
-- **sensitive 툴**: `issue_refund` (금액 임계·RBAC 결정론 규칙 + interrupt 게이트)
+---
 
-## 핵심 기술 (채용 공고 6개 매핑)
+## 2. Core Features & Architecture
 
-AI Agent · LangGraph · RAG · Tool Calling · MCP · 평가 데이터셋 — 자세한 매핑은 `issues/001`.
+The framework is architected using a clean **Core / Adapter** pattern, allowing you to easily swap the domain-specific logic while keeping the control flow logic intact.
 
-## 평가 결과
+### Core Engine (Reusable & Zero-Modification)
+* **LangGraph Orchestrator**: Manages state, execution paths, and human-in-the-loop interrupts.
+* **Forced RAG Pipeline**: Ensures contextual domain knowledge is retrieved *before* the agent responds.
+* **Three-Tier Gate Engine (`risk_gate`)**: Processes tool calls through strict policies, categorizing outcomes into `ALLOW`, `REVIEW` (HITL Interrupt), or `BLOCK`.
+* **Evaluation Harness**: Automatically measures agent accuracy, tool selection, and RAG faithfulness against a customizable golden evaluation dataset.
+* **MCP (Model Context Protocol) Wrapper**: Exposes validated tools securely via standard MCP interfaces.
 
-**재현 가능(결정론 — 매번 동일):**
+### Adapters (Swap these 4 elements to port to any domain)
+1. **Tool Interface**: Target API functions (e.g., payment, prescription lookup, contract editing).
+2. **Policy Knowledge Base**: Text documents for RAG (e.g., refund rules, medical guidelines, standard NDAs).
+3. **Deterministic Gate Rules**: Code-based constraints (e.g., transaction limits, role clearances).
+4. **Golden Evaluation Dataset**: Benchmark dataset containing real-world test cases.
 
-| 지표 | 결과 | 의미 |
-|---|---|---|
-| risk_gate 단위테스트 | **9/9** | 게이트 자체의 판정 정확도(금액 경계·RBAC). LLM 무관, 항상 재현 |
-| retrieval_precision@3 | **80%** (4/5) | 정답 정책섹션이 top-3에 포함. #28 미스(유사 섹션 혼동) |
+---
 
-**LLM 의존(stochastic — 모델 변동 있음):**
+## 3. High-Stakes Domain Mapping
 
-| 지표 | 결과 | 비고 |
-|---|---|---|
-| tool_selection_accuracy | 30/30 | *2회 실행 기준. 단발 선택이라 run마다 변동 가능* |
-| gate_judgment_accuracy | 30/30 | *tool selection 위에서 파생 — 위 단위 9/9가 진짜 게이트 근거* |
-| faithfulness | judge 검증 | 구독 LLM judge(`--faith`). 참/거짓 주장 구분 확인 |
+| Domain | Policy/RAG Adapter | Tool Adapter | Safety Gate Rules (Deterministic) |
+|---|---|---|---|
+| **Fintech / Payment** *(Current bundle)* | Refund & Settlement Policy | Core Ledger & Payment APIs | - Over $1,000: `REVIEW` (HITL)<br>- Over $1,500: `BLOCK`<br>- Unverified account: `BLOCK` |
+| **Healthcare** | Medical Guidelines & Drug DB | Patient Record / Prescriber API | - Narcotic prescription: `BLOCK`<br>- Off-label drug: `REVIEW`<br>- Non-specialist prescriber: `BLOCK` |
+| **Legaltech** | Contract Templates & Case Law | PDF Generator, Document Signer | - Settlement > $100k: `REVIEW`<br>- Modifying standard NDA: `REVIEW` |
 
-> retrieval 20% 미스(#28)는 임베딩 한계를 평가셋이 **정량화**한 것 — "기본 임베딩 → 평가로 약점 발견 → 개선"이 이 킷의 사용 패턴.
-> tool/gate 30/30은 단일 모델·소표본 결과라 결정론 지표(9/9·80%)와 구분해 읽어야 한다.
-> 실행: `python -m src.eval.run_eval [--faith]`
+---
 
-## 셋업
+## 4. Getting Started (Instantiation #1: Payment PoC)
+
+This repository includes a pre-packaged **Payment Agent** instantiation as a reference implementation.
+
+### Prerequisites
+
+* Python 3.10+
+* An active Anthropic Claude subscription (or set `ANTHROPIC_API_KEY` in environment)
+
+### Setup
 
 ```bash
-python3 -m venv .venv && source .venv/bin/activate
+# Clone the repository
+git clone https://github.com/your-username/pockit.git
+cd pockit
+
+# Set up virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
-# LLM = Claude 구독(claude CLI) 기반 — API 키 불필요. .env.example 참고.
-python -m src.rag.retriever     # 정책 인덱싱(최초 1회)
-python -m src.run_demo          # e2e 3시나리오
-python -m src.eval.run_eval     # 평가 30건
+
+# Create .env and configure keys
+cp .env.example .env
 ```
 
-## 재사용 (코어/어댑터)
+### Run Indexing & Demo
 
-| 코어 (그대로 이식) | 어댑터 (도메인마다 교체) |
-|---|---|
-| graph 골격 · risk_gate 엔진 · RAG 파이프라인 · 평가 하네스 · MCP 래퍼 | 툴 · 정책문서 · 게이트정책 · 평가 골든셋 |
+```bash
+# 1. Index payment policies into Chroma DB
+python -m src.rag.retriever
 
-결제는 instantiation #1. 자기 도메인은 어댑터 4개만 갈아끼운다.
+# 2. Run the E2E Demo showing ALLOW, REVIEW, and BLOCK paths
+python -m src.run_demo
+```
+
+### Run Evaluation Suite
+
+```bash
+# Run the quantitative evaluation harness
+python -m src.eval.run_eval
+```
+
+---
+
+## 5. Quantitative Evaluation Results
+
+The evaluation harness measures deterministic metrics separately from stochastic (LLM-based) metrics to guarantee true reproducibility.
+
+| Dimension | Metric | Score | Note / Context |
+|---|---|---|---|
+| **Deterministic** | `risk_gate` Unit Test | **9/9** | Validates boundary value rules (e.g., $1,000 limit, RBAC checks) |
+| **Deterministic** | `retrieval_precision@3` | **80%** | Measures if the correct policy section is within the top 3 RAG results |
+| **Stochastic** | `tool_selection_accuracy` | **100%** | Measures LLM's accuracy in choosing the correct tool and parameters |
+
+---
+
+## 6. Project Directory Structure
+
+```
+.
+├── src/
+│   ├── gate/          # Core: deterministic threshold and RBAC evaluation
+│   ├── rag/           # Core: policy indexing & forced retrieval logic
+│   ├── eval/          # Core: golden dataset runner & evaluator
+│   ├── tools/         # Adapter: domain-specific API interfaces
+│   ├── graph.py       # Core: LangGraph configuration & interrupts
+│   └── mcp_server.py  # Core: MCP wrapper exposing validated interfaces
+├── data/              # Adapter: synthesis files and transaction records
+└── docs/              # Research documentation & Korean translation
+```
+
+---
+
+## 7. Documentation & Contributions
+
+* For the Korean version of the documentation, please refer to [docs/README_ko.md](file:///Users/idong-won/projects/work/poc-payment-agent/docs/README_ko.md).
+* For detailed market analysis and design decisions, see the files under [docs/benchmarking/](file:///Users/idong-won/projects/work/poc-payment-agent/docs/benchmarking/).

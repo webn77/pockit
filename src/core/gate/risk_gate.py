@@ -2,29 +2,42 @@
 
 설계 thesis: LLM의 툴 선택과 실제 실행 사이의 게이트. **LLM 없음, 순수 규칙.**
 출력은 ALLOW/REVIEW/BLOCK 명시 스키마 → eval(gate-judgment accuracy)이 채점.
-
-Phase 1은 flat: 임계값·RBAC를 여기 상수로. (Phase 2에서 어댑터로 추출)
-임계값은 data/policies/refund_policy.md "3. 금액 기준 승인 단계"와 1:1.
 """
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass, field
-from typing import Any
+from pathlib import Path
+from typing import Any, Optional
+from pydantic import BaseModel, Field
 
-# safe 툴은 게이트 무조건 통과. sensitive 툴만 판정.
-SAFE_TOOLS = {"get_transaction", "calc_fee", "search_policy"}
-SENSITIVE_TOOLS = {"issue_refund"}
+class RiskGateConfig(BaseModel):
+    safe_tools: set[str] = Field(default_factory=lambda: {"get_transaction", "calc_fee", "search_policy"})
+    sensitive_tools: set[str] = Field(default_factory=lambda: {"issue_refund"})
+    review_threshold: int = 1_000_000
+    block_threshold: int = 1_500_000
+    role_limits: dict[str, Optional[int]] = Field(default_factory=lambda: {"agent": 1_000_000, "manager": None})
 
-# 금액 임계 (refund_policy.md §3)
-REVIEW_THRESHOLD = 1_000_000   # 이상 → REVIEW
-BLOCK_THRESHOLD = 1_500_000    # 초과 → BLOCK
+    @classmethod
+    def from_file(cls, path: Path | str) -> RiskGateConfig:
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return cls(**data)
+        except Exception:
+            return cls()
 
-# RBAC (refund_policy.md §6): 일반 상담원은 100만원 미만만 직접 실행
-ROLE_LIMITS = {
-    "agent": 1_000_000,   # 미만까지 직접 실행
-    "manager": None,      # 제한 없음
-}
+# Default config loading path
+_DEFAULT_CONFIG_PATH = Path(__file__).resolve().parents[3] / "data" / "gate_config.json"
+_DEFAULT_CONFIG = RiskGateConfig.from_file(_DEFAULT_CONFIG_PATH)
+
+# For backward compatibility
+SAFE_TOOLS = _DEFAULT_CONFIG.safe_tools
+SENSITIVE_TOOLS = _DEFAULT_CONFIG.sensitive_tools
+REVIEW_THRESHOLD = _DEFAULT_CONFIG.review_threshold
+BLOCK_THRESHOLD = _DEFAULT_CONFIG.block_threshold
+ROLE_LIMITS = _DEFAULT_CONFIG.role_limits
 
 _POLICY = "refund_policy.md"
 
@@ -45,13 +58,28 @@ class GateDecision:
         }
 
 
-def evaluate(tool_name: str, args: dict[str, Any], role: str = "agent") -> GateDecision:
+def evaluate(
+    tool_name: str,
+    args: dict[str, Any],
+    role: str = "agent",
+    config: Optional[RiskGateConfig] = None
+) -> GateDecision:
     """툴 호출 1건을 판정. role 기본 = 일반 상담원."""
+    cfg = config or _DEFAULT_CONFIG
+
+    # 0) JIT RBAC Security Check: 비인가자(user)는 어떠한 툴 호출도 불가능하며 무조건 차단/검토
+    if role == "user":
+        return GateDecision(
+            "REVIEW",
+            "비인가 사용자(user)의 직접적인 도구 호출 시도 감지 - 보안 심사 필요",
+            requires_human=True
+        )
+
     # 1) safe 툴 → 통과
-    if tool_name in SAFE_TOOLS:
+    if tool_name in cfg.safe_tools:
         return GateDecision("ALLOW", f"safe tool '{tool_name}' — 조회/계산은 통제 대상 아님")
 
-    if tool_name not in SENSITIVE_TOOLS:
+    if tool_name not in cfg.sensitive_tools:
         return GateDecision("BLOCK", f"unknown tool '{tool_name}'", requires_human=True)
 
     # 2) sensitive 툴(issue_refund) → 금액 판정
@@ -66,24 +94,24 @@ def evaluate(tool_name: str, args: dict[str, Any], role: str = "agent") -> GateD
         )
 
     # 금액 임계
-    if amount > BLOCK_THRESHOLD:
+    if amount > cfg.block_threshold:
         return GateDecision(
             "BLOCK",
-            f"{amount:,}원 > {BLOCK_THRESHOLD:,}원 — 환불 심사 위원회 별도 승인 필요",
+            f"{amount:,}원 > {cfg.block_threshold:,}원 — 환불 심사 위원회 별도 승인 필요",
             [f"{_POLICY} · 3. 금액 기준 승인 단계"],
             requires_human=True,
         )
 
-    if amount >= REVIEW_THRESHOLD:
+    if amount >= cfg.review_threshold:
         return GateDecision(
             "REVIEW",
-            f"{amount:,}원 ≥ {REVIEW_THRESHOLD:,}원 — 매니저 검토 후 승인 필요",
+            f"{amount:,}원 ≥ {cfg.review_threshold:,}원 — 매니저 검토 후 승인 필요",
             [f"{_POLICY} · 3. 금액 기준 승인 단계"],
             requires_human=True,
         )
 
     # 3) 100만원 미만 → RBAC 확인
-    limit = ROLE_LIMITS.get(role, 0)
+    limit = cfg.role_limits.get(role, 0)
     if limit is not None and amount >= limit:
         return GateDecision(
             "REVIEW",
@@ -94,6 +122,6 @@ def evaluate(tool_name: str, args: dict[str, Any], role: str = "agent") -> GateD
 
     return GateDecision(
         "ALLOW",
-        f"{amount:,}원 < {REVIEW_THRESHOLD:,}원 — '{role}' 권한 내 자동 승인",
+        f"{amount:,}원 < {cfg.review_threshold:,}원 — '{role}' 권한 내 자동 승인",
         [f"{_POLICY} · 3. 금액 기준 승인 단계"],
     )

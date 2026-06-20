@@ -1,7 +1,7 @@
 {
   "active_goal": "GOAL-1",
-  "active_issue": "ISSUE-002",
-  "phase": "phase2-scoped",
-  "next_command": "ISSUE-002 착수 — payment.sql 분석 → 결제 어댑터 (새 세션)",
-  "last_updated": "2026-06-19"
+  "active_issue": "none",
+  "phase": "completed",
+  "next_command": "none (전체 이슈 완료 — 배포 대기)",
+  "last_updated": "2026-06-20"
 }

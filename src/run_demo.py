@@ -7,7 +7,7 @@
 
 from __future__ import annotations
 
-from src.graph import build_graph
+from src.core.graph import build_graph
 
 
 def run(graph, thread_id, query, role="agent", approve=None, selection=None):

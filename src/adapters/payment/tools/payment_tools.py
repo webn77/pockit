@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 # data/transactions.csv (합성 데이터만 — 실 거래 금지)
-_DATA_PATH = Path(__file__).resolve().parents[2] / "data" / "transactions.csv"
+_DATA_PATH = Path(__file__).resolve().parents[4] / "data" / "transactions.csv"
 
 # 결제수단별 수수료율 (결정론 규칙)
 _FEE_RATES = {

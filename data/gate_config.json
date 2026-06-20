@@ -1,0 +1,16 @@
+{
+  "safe_tools": [
+    "get_transaction",
+    "calc_fee",
+    "search_policy"
+  ],
+  "sensitive_tools": [
+    "issue_refund"
+  ],
+  "review_threshold": 1000000,
+  "block_threshold": 1500000,
+  "role_limits": {
+    "agent": 1000000,
+    "manager": null
+  }
+}

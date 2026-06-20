@@ -1,32 +1,28 @@
-# Dashboard — 고위험 도메인 LLM 가드레일 스타터킷
+# Dashboard — 고위험 도메인 LLM 가드레일 스타터킷 (Pockit)
 
-> 갱신: 2026-06-19
+> 갱신: 2026-06-20
 
 | 항목 | 값 |
 |---|---|
 | 활성 목표 | GOAL-1 |
-| 활성 이슈 | ISSUE-001 (Phase 1 완료) |
-| 현재 Phase | Phase 1 ✅ 완료 → Phase 2 대기 |
-| 다음 액션 | Phase 2 = AT-17 이식 후속 이슈 생성 |
+| 활성 이슈 | none (전체 이슈 완료) |
+| 현재 Phase | Phase 9 ✅ 완료 |
+| 다음 액션 | `product:release` 및 배포 준비 |
 
-## Phase 1 진행 현황 — ✅ 완료
-- [x] 프로젝트 초기화 (git-files 모드)
-- [x] GOAL-1 + Roadmap
-- [x] 레퍼런스 분석 (ro-anderson) → 설계 확정
-- [x] 스캐폴딩 + 합성 거래 15건 + 결제 툴 3개
-- [x] RAG (Chroma + 다국어 임베딩 + search_policy)
-- [x] 구독 LLM seam (llm_client.py, API 키 0)
-- [x] risk_gate (ALLOW/REVIEW/BLOCK + RBAC, 경계 9/9)
-- [x] LangGraph 조립 + e2e (interrupt/resume)
-- [x] MCP 서버 (4툴 노출)
-- [x] 평가셋 30건 (tool 100% · gate 100% · retrieval@3 80%)
-- [x] 포트폴리오 AT-23 등록
+## 진행 현황 (Issues Status)
+- [x] **ISSUE-001**: 가드레일 스타터킷 (결제 PoC로 시작) ✅
+- [x] **ISSUE-002**: AT-17 이식 데모 ✅
+- [x] **ISSUE-003**: 평가셋 이원화 (분리) ✅
+- [x] **ISSUE-004**: 백오피스 연동 검증 ✅
+- [x] **ISSUE-005**: 다중 MCP Client 연동 및 JIT 권한 전파 ✅
+- [x] **ISSUE-006**: pockit 패키징 빌드 구조 도입 및 pytest 마이그레이션 ✅
+- [x] **ISSUE-007**: 가드레일 하드코딩 설정(임계값/RBAC) 분리 및 RiskGateConfig 구축 ✅
+- [x] **ISSUE-008**: retriever.py 클라우드 임베딩 API 옵션화 및 Apache 2.0 라이선스 적용 ✅
+- [x] **ISSUE-009**: Pockit 로컬 정적 대시보드 및 리포트 빌더 구축 ✅
 
-## 지표 (golden 30건)
-| tool_selection | gate_judgment | retrieval@3 |
-|---|---|---|
-| 100% | 100% | 80% |
-
-## Phase 2/3 (후속)
-- [ ] Phase 2 — AT-17 이식 (코어/어댑터 경계 검증)
-- [ ] Phase 3 — 스타터킷 추출 → 오픈소스 공개
+## 지표 (Golden Set 30건 검증 결과)
+| 지표 항목 | 목표치 | 현재 달성도 | 상태 |
+|---|---|---|---|
+| 툴 선택 정확도 (Tool Selection) | 100% | 100% | ✅ 패스 |
+| 가드레일 판정 정확도 (Gate Judgment) | 100% | 100% | ✅ 패스 |
+| RAG 검색 정확도 (Retrieval@3) | 80% | 80% | ✅ 패스 |

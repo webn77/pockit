@@ -2,8 +2,6 @@
 
 search_policy 가 4번째 툴이자, 그래프에서 **노드로 강제** 호출된다(설계 결정 1).
 LLM 재량이 아니라 항상 검색 → "환불은 항상 정책 근거"를 보장.
-
-임베딩: Chroma 기본(all-MiniLM-L6-v2, 로컬 onnx) — API 키 불필요.
 """
 
 from __future__ import annotations
@@ -12,24 +10,67 @@ import os
 import re
 from pathlib import Path
 from typing import Any
+import requests
 
 import chromadb
 from chromadb.utils import embedding_functions
+from chromadb.api.types import Documents, EmbeddingFunction, Embeddings
 
-_ROOT = Path(__file__).resolve().parents[2]
+_ROOT = Path(__file__).resolve().parents[3]
 _POLICY_DIR = _ROOT / "data" / "policies"
 _CHROMA_DIR = os.environ.get("CHROMA_DIR", str(_ROOT / "chroma_db"))
 _COLLECTION = "payment_policies"
 
-# 다국어 임베딩 — 한국어 정책 검색 정확도 확보(설계 결정 1 "항상 근거").
-# 기본 all-MiniLM(영어 위주)은 한국어 의미매칭이 약해 교체.
-_EMBED = embedding_functions.SentenceTransformerEmbeddingFunction(
-    model_name="paraphrase-multilingual-MiniLM-L12-v2"
-)
+
+class GeminiEmbeddingFunction(EmbeddingFunction):
+    """Gemini HTTP API를 직접 호출하는 초경량 의존성 커스텀 임베딩 함수."""
+    def __init__(self, api_key: str, model_name: str = "text-embedding-004"):
+        self.api_key = api_key
+        self.model_name = model_name
+
+    def __call__(self, input: Documents) -> Embeddings:
+        embeddings = []
+        for text in input:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{self.model_name}:embedContent?key={self.api_key}"
+            headers = {"Content-Type": "application/json"}
+            payload = {
+                "content": {
+                    "parts": [{"text": text}]
+                }
+            }
+            res = requests.post(url, json=payload, headers=headers, timeout=15)
+            res.raise_for_status()
+            embeddings.append(res.json()["embedding"]["values"])
+        return embeddings
+
+
+def get_embedding_function() -> EmbeddingFunction:
+    """EMBEDDING_PROVIDER 환경변수에 기반하여 임베딩 함수 인스턴스를 동적으로 획득합니다."""
+    provider = os.environ.get("EMBEDDING_PROVIDER", "local").lower()
+
+    if provider == "openai":
+        api_key = os.environ.get("OPENAI_API_KEY")
+        if not api_key:
+            raise ValueError("OPENAI_API_KEY is required when EMBEDDING_PROVIDER is 'openai'")
+        return embedding_functions.OpenAIEmbeddingFunction(
+            api_key=api_key,
+            model_name=os.environ.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small")
+        )
+    elif provider in ("google", "gemini"):
+        api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+        if not api_key:
+            raise ValueError("GEMINI_API_KEY or GOOGLE_API_KEY is required when EMBEDDING_PROVIDER is 'google' or 'gemini'")
+        model_name = os.environ.get("GOOGLE_EMBEDDING_MODEL", "text-embedding-004")
+        return GeminiEmbeddingFunction(api_key=api_key, model_name=model_name)
+    else:
+        # Default local SentenceTransformer
+        return embedding_functions.SentenceTransformerEmbeddingFunction(
+            model_name="paraphrase-multilingual-MiniLM-L12-v2"
+        )
 
 
 def _chunk_markdown(text: str, source: str) -> list[dict[str, Any]]:
-    """## 섹션 헤더 단위로 청크 분할. 각 청크에 source·section 메타 부여."""
+    """섹션 헤더 단위로 청크 분할. 각 청크에 source·section 메타 부여."""
     chunks: list[dict[str, Any]] = []
     # 첫 '## ' 이전(문서 제목)은 버리고 섹션 단위로 자른다.
     parts = re.split(r"\n(?=## )", text)
@@ -49,12 +90,14 @@ def _get_client() -> chromadb.ClientAPI:
 def build_index() -> int:
     """정책 문서를 청크로 잘라 Chroma에 (재)인덱싱. 청크 개수 반환."""
     client = _get_client()
+    embed_fn = get_embedding_function()
+
     # idempotent: 기존 컬렉션 삭제 후 재생성
     try:
         client.delete_collection(_COLLECTION)
     except Exception:
         pass
-    collection = client.create_collection(_COLLECTION, embedding_function=_EMBED)
+    collection = client.create_collection(_COLLECTION, embedding_function=embed_fn)
 
     docs, metas, ids = [], [], []
     for md_path in sorted(_POLICY_DIR.glob("*.md")):
@@ -76,8 +119,10 @@ def search_policy(query: str, k: int = 3) -> dict[str, Any]:
     results 가 faithfulness·context-precision 평가의 채점 대상이 된다.
     """
     client = _get_client()
+    embed_fn = get_embedding_function()
+
     try:
-        collection = client.get_collection(_COLLECTION, embedding_function=_EMBED)
+        collection = client.get_collection(_COLLECTION, embedding_function=embed_fn)
     except Exception:
         return {"ok": False, "reason": "index not built — run build_index()", "query": query, "results": []}
 
