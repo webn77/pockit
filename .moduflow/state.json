@@ -2,6 +2,6 @@
   "active_goal": "GOAL-1",
   "active_issue": "none",
   "phase": "completed",
-  "next_command": "none (전체 이슈 완료 — 배포 대기)",
-  "last_updated": "2026-06-20"
+  "next_command": "none (전체 이슈 완료 및 pockit 라이브러리 고도화 완료)",
+  "last_updated": "2026-06-21"
 }

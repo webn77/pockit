@@ -45,6 +45,10 @@ pockit/
 ### 1. 패키지 설치
 `pockit`은 독립적인 파이썬 라이브러리로 패키징되어 있어 로컬 가상환경에 즉시 라이브러리로 설치할 수 있습니다:
 ```bash
+# Clone the repository
+git clone https://github.com/webn77/pockit.git
+cd pockit
+
 # 가상환경 활성화 상태에서 개발자 편집 모드 설치
 pip install -e ".[test]"
 ```
@@ -55,7 +59,7 @@ pip install -e ".[test]"
 # 1. 시스템 자가 진단
 python src/core/doctor.py
 
-# 2. 골든셋 평가셋 채점 및 시각화 리포트 생성
+# 2. 골든셋 평가셋 채점 및 시각화 리포트 생성 (data/eval/report.html 생성)
 MOCK_LLM=true python src/core/eval/run_eval.py
 ```
 * 채점이 완료되면 `data/eval/report.html` 경로에 미려하게 디자인된 **Chart.js 기반 PoC 검증 보고서**가 생성됩니다.
@@ -69,21 +73,63 @@ pytest tests/
 ---
 
 ## ⚙️ 타 프로젝트에 pockit 이식하기 (재사용 방법)
-회사 내 다른 서비스(예: 백오피스봇)에 `pockit` 가드레일을 적용하려면 **3단계**만 수행하면 됩니다.
+회사 내 다른 서비스(예: 백오피스봇, 사내 챗봇 등)에 `pockit` 가드레일을 적용하려면 아래 **3가지 단계**를 따라 연동합니다.
 
+### 1단계: 패키지 추가
+타 프로젝트의 가상환경 내에서 `pockit`이 위치한 경로를 통해 라이브러리를 설치합니다.
+```bash
+# 타 프로젝트 가상환경에서 실행
+pip install -e /path/to/pockit
+```
+
+### 2단계: 가드레일 및 권한 모델 구성
+설정 파일(`gate_config.json`)을 인젝션하고, 요청을 수행할 사용자의 세션 정보(`UserContext`)를 정의합니다.
 ```python
 from pockit.core.gate.risk_gate import RiskGateConfig, evaluate
-from pockit.core.client.manager import ConnectionManager, UserContext
+from pockit.core.client.manager import ConnectionManager, MCPServerConfig, UserContext
 
-# 1. 도메인 한도 설정 주입
-config = RiskGateConfig.from_file("data/gate_config.json")
+# 1. 가드레일 규칙 로드
+config = RiskGateConfig.from_file("/path/to/gate_config.json")
 
-# 2. 사용자 권한 Context 준비
-user = UserContext(user_id=123, role="agent", jwt_token="eyJ...")
+# 2. 다운스트림 연동할 사내 MCP 등록
+manager = ConnectionManager()
+manager.register_server(MCPServerConfig(
+    name="internal-hr-db",
+    transport="stdio",
+    command="python",
+    args=["-m", "my_mcp_server"]
+))
 
-# 3. 툴 실행 전 결정론적 검증
-decision = evaluate("sensitive_api_tool", {"amount": 500000}, role=user.role, config=config)
+# 3. 로그인한 사용자의 JIT 사원증 Context 생성
+user = UserContext(
+    user_id=45601,
+    email="dongwon@enterprise.com",
+    role="agent",
+    jwt_token="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+)
+```
+
+### 3단계: 도구(Tool) 호출 제어 및 실행
+```python
+# 1단계: 가드레일 사전 차단 평가 (AI 응답 신호등 판정)
+decision = evaluate(
+    tool_name="get_payroll_details", 
+    args={"target_employee_id": 45601}, 
+    role=user.role, 
+    config=config
+)
+
+# 2단계: 승인(ALLOW)인 경우에만 다운스트림 MCP 호출 실행 (JIT 권한 자동 주입)
 if decision.decision == "ALLOW":
-    # 툴 실행 코드
-    pass
+    res = await manager.call_tool_securely(
+        server_name="internal-hr-db",
+        tool_name="get_payroll_details",
+        arguments={"target_employee_id": 45601},
+        user_context=user
+    )
+    print("실행 결과:", res.content[0].text)
+elif decision.decision == "REVIEW":
+    print("⏸ 사람의 승인이 필요하여 일시 중단되었습니다:", decision.reason)
+else:
+    print("❌ 가드레일이 요청을 강제 차단했습니다:", decision.reason)
 ```
