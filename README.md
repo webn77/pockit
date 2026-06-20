@@ -64,6 +64,10 @@ MOCK_LLM=true python src/core/eval/run_eval.py
 ```
 * 채점이 완료되면 `data/eval/report.html` 경로에 미려하게 디자인된 **Chart.js 기반 PoC 검증 보고서**가 생성됩니다.
 
+![Pockit PoC 검증 대시보드](docs/images/dashboard.png)
+
+> 골든셋 30건 실측 — 툴 선택 정확도 100% · 가드레일 정확도 100% · RAG 검색 정확도 80% · 평균 E2E 응답 9.38s. 3대 합격 요건을 모두 통과(PASS)했습니다.
+
 ### 3. pytest 자동화 테스트 구동
 보안 매니저 및 JIT 권한 주입 로직의 회귀 테스트를 상시 실행합니다:
 ```bash
