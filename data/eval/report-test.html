@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pockit Guardrail Evaluation Dashboard</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    :root {
+      --bg-color: #0d0f12;
+      --surface-color: #161a20;
+      --surface-border: #242b35;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      --font-outfit: 'Outfit', 'Inter', sans-serif;
+      --font-inter: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-inter);
+      padding: 2.5rem 1.5rem;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    header {
+      margin-bottom: 2.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px solid var(--surface-border);
+      padding-bottom: 1.5rem;
+    }
+
+    .logo-area h1 {
+      font-family: var(--font-outfit);
+      font-size: 2.2rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #a78bfa 0%, #6366f1 50%, #10b981 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .logo-area p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-top: 0.25rem;
+    }
+
+    .meta-area {
+      text-align: right;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .meta-area span {
+      display: block;
+    }
+
+    .meta-area strong {
+      color: var(--text-main);
+    }
+
+    /* Metric Grid */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .metric-card {
+      background-color: var(--surface-color);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background-color: var(--primary);
+    }
+
+    .metric-card.primary { border-color: var(--primary); background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(22, 26, 32, 0.6) 100%); }
+    .metric-card.primary::before { background-color: var(--primary); }
+
+    .metric-card.accent { border-color: var(--accent); background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(22, 26, 32, 0.6) 100%); }
+    .metric-card.accent::before { background-color: var(--accent); }
+
+    .metric-card.warning { border-color: var(--warning); background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(22, 26, 32, 0.6) 100%); }
+    .metric-card.warning::before { background-color: var(--warning); }
+
+    .metric-card.danger { border-color: var(--danger); background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(22, 26, 32, 0.6) 100%); }
+    .metric-card.danger::before { background-color: var(--danger); }
+
+    .metric-card.info { border-color: #38bdf8; background: linear-gradient(135deg, rgba(56, 189, 248, 0.05) 0%, rgba(22, 26, 32, 0.6) 100%); }
+    .metric-card.info::before { background-color: #38bdf8; }
+
+    .metric-card.purple { border-color: #a78bfa; background: linear-gradient(135deg, rgba(167, 139, 250, 0.05) 0%, rgba(22, 26, 32, 0.6) 100%); }
+    .metric-card.purple::before { background-color: #a78bfa; }
+
+    .metric-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-family: var(--font-outfit);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .metric-subtext {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Visualization Section */
+    .viz-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    @media (max-width: 768px) {
+      .viz-section {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background-color: var(--surface-color);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+    }
+
+    .panel-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 1.25rem;
+      color: var(--text-main);
+      font-family: var(--font-outfit);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Chart styles */
+    .chart-container {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 1rem 0;
+    }
+
+    .circle-chart {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .circle-chart svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .circle-chart circle {
+      fill: none;
+      stroke-width: 8;
+    }
+
+    .circle-bg {
+      stroke: #1e293b;
+    }
+
+    .circle-progress {
+      stroke: var(--primary);
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.8s ease;
+    }
+
+    .circle-progress.accent { stroke: var(--accent); }
+
+    .chart-label {
+      position: absolute;
+      font-family: var(--font-outfit);
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .chart-label span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* Table filters */
+    .filter-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      background-color: #0d0f12;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      width: 250px;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .filter-btn {
+      background-color: #1e293b;
+      border: 1px solid var(--surface-border);
+      border-radius: 8px;
+      padding: 0.4rem 0.8rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .filter-btn:hover, .filter-btn.active {
+      background-color: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto;
+      border-radius: 12px;
+      border: 1px solid var(--surface-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: #1e293b;
+      padding: 1rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--surface-border);
+      background-color: var(--surface-color);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .badge.success {
+      background-color: rgba(16, 185, 129, 0.15);
+      color: var(--accent);
+    }
+
+    .badge.danger {
+      background-color: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
+    .badge.warning {
+      background-color: rgba(245, 158, 11, 0.15);
+      color: var(--warning);
+    }
+
+    .clickable-row {
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .clickable-row:hover td {
+      background-color: #1e293b;
+    }
+
+    .details-row {
+      display: none;
+    }
+
+    .details-row td {
+      background-color: #0d0f12;
+      padding: 1.5rem;
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 640px) {
+      .details-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .details-block h4 {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+    }
+
+    .details-block pre {
+      background-color: #161a20;
+      border: 1px solid var(--surface-border);
+      padding: 0.75rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: monospace;
+      color: #38bdf8;
+    }
+
+    .details-block div {
+      background-color: #161a20;
+      border: 1px solid var(--surface-border);
+      padding: 0.75rem;
+      border-radius: 8px;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="logo-area">
+      <div style="display: flex; align-items: center; gap: 0.75rem;">
+        <h1>POCKIT</h1>
+        <span class="badge success" style="font-size: 0.85rem; padding: 0.3rem 0.6rem; vertical-align: middle;">PoC v0.1.0</span>
+      </div>
+      <p>Just-In-Time Guardrail Engine PoC Validation Report</p>
+    </div>
+    <div class="meta-area">
+      <span>진행일자: <strong>2026-06-21 02:04:57</strong></span>
+      <span>검증 데이터셋: <strong>validation</strong></span>
+      <span>PoC 최종 판정: <strong style="color: var(--accent);">PASS (검증 통과)</strong></span>
+    </div>
+  </header>
+
+  <!-- PoC Success Criteria Verification Block -->
+  <div class="panel" style="margin-bottom: 2rem; border-color: rgba(16, 185, 129, 0.4); background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);">
+    <div class="panel-title" style="color: var(--accent); font-size: 1.2rem;">
+      <span>✓ PoC 검증 합격 요건 충족 현황</span>
+      <span class="badge success" style="font-size: 0.9rem; padding: 0.4rem 0.8rem;">최종 적격 판정</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+      <div style="background-color: rgba(13, 15, 18, 0.6); padding: 1rem; border-radius: 12px; border: 1px solid var(--surface-border);">
+        <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">1. 도구 선택 정확도 (Tool Selection)</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem;">기준 요건: <strong>&ge; 100%</strong></span>
+          <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="poc-tool-status">100% (통과)</span>
+        </div>
+      </div>
+      <div style="background-color: rgba(13, 15, 18, 0.6); padding: 1rem; border-radius: 12px; border: 1px solid var(--surface-border);">
+        <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">2. 가드레일 제어 정확도 (Gate Logic)</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem;">기준 요건: <strong>&ge; 100%</strong></span>
+          <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="poc-gate-status">100% (통과)</span>
+        </div>
+      </div>
+      <div style="background-color: rgba(13, 15, 18, 0.6); padding: 1rem; border-radius: 12px; border: 1px solid var(--surface-border);">
+        <h4 style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">3. RAG 검색 정밀도 (Retrieval@3)</h4>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.9rem;">기준 요건: <strong>&ge; 80%</strong></span>
+          <span style="font-size: 1.2rem; font-weight: 700; color: var(--accent);" id="poc-rag-status">80% (통과)</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Metrics Dashboard -->
+  <div class="metric-grid">
+    <div class="metric-card primary">
+      <div class="metric-label">총 테스트 케이스</div>
+      <div class="metric-value" id="val-total">0</div>
+      <div class="metric-subtext">완료된 검증 항목 수</div>
+    </div>
+    <div class="metric-card accent">
+      <div class="metric-label">도구 선택 정확도</div>
+      <div class="metric-value" id="val-tool">0%</div>
+      <div class="metric-subtext">Tool Selection Accuracy</div>
+    </div>
+    <div class="metric-card warning">
+      <div class="metric-label">가드레일 정확도</div>
+      <div class="metric-value" id="val-gate">0%</div>
+      <div class="metric-subtext">Gate Judgment Accuracy</div>
+    </div>
+    <div class="metric-card danger">
+      <div class="metric-label">RAG 검색 정확도</div>
+      <div class="metric-value" id="val-rag">0%</div>
+      <div class="metric-subtext">Retrieval Precision@3</div>
+    </div>
+    <div class="metric-card info">
+      <div class="metric-label">평균 응답 속도</div>
+      <div class="metric-value" id="val-latency">0.00s</div>
+      <div class="metric-subtext">Average E2E Latency</div>
+    </div>
+    <div class="metric-card purple">
+      <div class="metric-label">평균 토큰 사용량</div>
+      <div class="metric-value" id="val-tokens">0 tkn</div>
+      <div class="metric-subtext">Estimated Avg Tokens</div>
+    </div>
+  </div>
+
+  <!-- Viz Grid -->
+  <div class="viz-section">
+    <div class="panel">
+      <div class="panel-title">핵심 정확도 분석 (Chart.js)</div>
+      <div style="position: relative; height: 220px; width: 100%;">
+        <canvas id="accuracyChart"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">PoC 시나리오 통과 비율 (Chart.js)</div>
+      <div style="position: relative; height: 220px; width: 100%; display: flex; justify-content: center; align-items: center;">
+        <canvas id="passFailChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table List Panel -->
+  <div class="panel">
+    <div class="panel-title">
+      테스트 결과 상세
+    </div>
+    <div class="filter-bar">
+      <input type="text" class="search-input" id="search-box" placeholder="요청 질의어 검색..." oninput="applyFilters()">
+      <div class="filter-buttons">
+        <button class="filter-btn active" id="btn-all" onclick="setFilter('all')">전체</button>
+        <button class="filter-btn" id="btn-pass" onclick="setFilter('pass')">패스</button>
+        <button class="filter-btn" id="btn-fail" onclick="setFilter('fail')">실패</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>카테고리</th>
+            <th>질의어</th>
+            <th>선택 도구</th>
+            <th>가드레일 판정</th>
+            <th>최종 결과</th>
+          </tr>
+        </thead>
+        <tbody id="result-rows">
+          <!-- Rendered dynamically -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Dynamic Data placeholder replaced by compiler
+  const results = [{"id": 1, "category": "refund_allow", "query": "TX1003 거래 8000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "8,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 21.726375102996826, "est_tokens": 318}, {"id": 2, "category": "refund_allow", "query": "TX1001 거래 12000원 환불 처리해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "12,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 10.157054901123047, "est_tokens": 322}, {"id": 3, "category": "refund_allow", "query": "TX1007 거래 5000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "5,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 6.263959169387817, "est_tokens": 318}, {"id": 4, "category": "refund_allow", "query": "TX1011 거래 3000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "3,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 7.042675256729126, "est_tokens": 318}, {"id": 5, "category": "refund_allow", "query": "TX1013 거래 64000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "64,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 7.467825889587402, "est_tokens": 320}, {"id": 6, "category": "refund_allow", "query": "TX1002 거래 45000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "45,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 12.111299991607666, "est_tokens": 320}, {"id": 7, "category": "refund_allow", "query": "TX1009 거래 250000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "250,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 6.526915073394775, "est_tokens": 321}, {"id": 8, "category": "refund_allow", "query": "TX1012 거래 780000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "780,000원 < 1,000,000원 — 'agent' 권한 내 자동 승인", "ret_ok": null, "faith_ok": null, "latency": 6.986431837081909, "est_tokens": 321}, {"id": 9, "category": "refund_review", "query": "TX1004 거래 1200000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "REVIEW", "gate_ok": true, "expected_gate": "REVIEW", "gate_reason": "1,200,000원 ≥ 1,000,000원 — 매니저 검토 후 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 8.339309692382812, "est_tokens": 323}, {"id": 10, "category": "refund_review", "query": "TX1004 거래 1000000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "REVIEW", "gate_ok": true, "expected_gate": "REVIEW", "gate_reason": "1,000,000원 ≥ 1,000,000원 — 매니저 검토 후 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 7.220006942749023, "est_tokens": 323}, {"id": 11, "category": "refund_review", "query": "TX1015 거래 1200000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "REVIEW", "gate_ok": true, "expected_gate": "REVIEW", "gate_reason": "1,200,000원 ≥ 1,000,000원 — 매니저 검토 후 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 8.089061975479126, "est_tokens": 323}, {"id": 12, "category": "refund_review", "query": "TX1004 거래 1500000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "REVIEW", "gate_ok": true, "expected_gate": "REVIEW", "gate_reason": "1,500,000원 ≥ 1,000,000원 — 매니저 검토 후 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 10.189296007156372, "est_tokens": 323}, {"id": 13, "category": "refund_review", "query": "TX1015 거래 1450000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "REVIEW", "gate_ok": true, "expected_gate": "REVIEW", "gate_reason": "1,450,000원 ≥ 1,000,000원 — 매니저 검토 후 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 7.360513925552368, "est_tokens": 323}, {"id": 14, "category": "refund_block", "query": "TX1015 거래 2000000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "BLOCK", "gate_ok": true, "expected_gate": "BLOCK", "gate_reason": "2,000,000원 > 1,500,000원 — 환불 심사 위원회 별도 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 9.805930376052856, "est_tokens": 323}, {"id": 15, "category": "refund_block", "query": "TX1015 거래 1800000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "BLOCK", "gate_ok": true, "expected_gate": "BLOCK", "gate_reason": "1,800,000원 > 1,500,000원 — 환불 심사 위원회 별도 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 7.537473201751709, "est_tokens": 323}, {"id": 16, "category": "refund_block", "query": "TX1015 거래 1600000원 환불해줘", "tool": "issue_refund", "tool_ok": true, "expected_tool": "issue_refund", "decision": "BLOCK", "gate_ok": true, "expected_gate": "BLOCK", "gate_reason": "1,600,000원 > 1,500,000원 — 환불 심사 위원회 별도 승인 필요", "ret_ok": null, "faith_ok": null, "latency": 6.834662199020386, "est_tokens": 323}, {"id": 17, "category": "lookup", "query": "TX1001 거래 조회해줘", "tool": "get_transaction", "tool_ok": true, "expected_tool": "get_transaction", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'get_transaction' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 9.294892072677612, "est_tokens": 303}, {"id": 18, "category": "lookup", "query": "TX1009 거래 내역 보여줘", "tool": "get_transaction", "tool_ok": true, "expected_tool": "get_transaction", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'get_transaction' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 7.815408945083618, "est_tokens": 304}, {"id": 19, "category": "lookup", "query": "TX1006 거래 상태 확인해줘", "tool": "get_transaction", "tool_ok": true, "expected_tool": "get_transaction", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'get_transaction' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 11.140223979949951, "est_tokens": 305}, {"id": 20, "category": "lookup", "query": "TX1015 거래 정보 알려줘", "tool": "get_transaction", "tool_ok": true, "expected_tool": "get_transaction", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'get_transaction' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 15.740401029586792, "est_tokens": 304}, {"id": 21, "category": "lookup", "query": "TX1005 거래 조회", "tool": "get_transaction", "tool_ok": true, "expected_tool": "get_transaction", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'get_transaction' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 6.494252920150757, "est_tokens": 301}, {"id": 22, "category": "fee", "query": "30만원 카드 결제 수수료 얼마야?", "tool": "calc_fee", "tool_ok": true, "expected_tool": "calc_fee", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'calc_fee' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 6.389619827270508, "est_tokens": 308}, {"id": 23, "category": "fee", "query": "50000원 포인트 결제 수수료 계산해줘", "tool": "calc_fee", "tool_ok": true, "expected_tool": "calc_fee", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'calc_fee' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 8.412674903869629, "est_tokens": 310}, {"id": 24, "category": "fee", "query": "1000000원 카드 결제 수수료 계산해줘", "tool": "calc_fee", "tool_ok": true, "expected_tool": "calc_fee", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'calc_fee' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 14.28216290473938, "est_tokens": 312}, {"id": 25, "category": "fee", "query": "20000원 카드 수수료 알려줘", "tool": "calc_fee", "tool_ok": true, "expected_tool": "calc_fee", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'calc_fee' — 조회/계산은 통제 대상 아님", "ret_ok": null, "faith_ok": null, "latency": 7.978067874908447, "est_tokens": 305}, {"id": 26, "category": "policy", "query": "환불 가능 기간이 며칠이야?", "tool": "search_policy", "tool_ok": true, "expected_tool": "search_policy", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'search_policy' — 조회/계산은 통제 대상 아님", "ret_ok": true, "faith_ok": null, "latency": 7.990693092346191, "est_tokens": 296}, {"id": 27, "category": "policy", "query": "고액 환불 승인 절차 알려줘", "tool": "search_policy", "tool_ok": true, "expected_tool": "search_policy", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'search_policy' — 조회/계산은 통제 대상 아님", "ret_ok": true, "faith_ok": null, "latency": 19.375194787979126, "est_tokens": 299}, {"id": 28, "category": "policy", "query": "포인트 결제 수수료 정책이 뭐야?", "tool": "search_policy", "tool_ok": true, "expected_tool": "search_policy", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'search_policy' — 조회/계산은 통제 대상 아님", "ret_ok": false, "faith_ok": null, "latency": 6.461645603179932, "est_tokens": 303}, {"id": 29, "category": "policy", "query": "환불 권한은 누구에게 있어?", "tool": "search_policy", "tool_ok": true, "expected_tool": "search_policy", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'search_policy' — 조회/계산은 통제 대상 아님", "ret_ok": true, "faith_ok": null, "latency": 7.177417039871216, "est_tokens": 294}, {"id": 30, "category": "policy", "query": "카드 환불은 며칠 걸려?", "tool": "search_policy", "tool_ok": true, "expected_tool": "search_policy", "decision": "ALLOW", "gate_ok": true, "expected_gate": "ALLOW", "gate_reason": "safe tool 'search_policy' — 조회/계산은 통제 대상 아님", "ret_ok": true, "faith_ok": null, "latency": 9.27067494392395, "est_tokens": 297}];
+  const metrics = {"total": 30, "tool_acc": 1.0, "gate_acc": 1.0, "ret_prec": 0.8, "avg_latency": 9.38273738225301, "total_tokens": 9383, "avg_tokens": 312.76666666666665};
+  
+  let currentFilter = 'all';
+
+  function initDashboard() {
+    // 1. Fill statistics
+    document.getElementById('val-total').innerText = metrics.total;
+    document.getElementById('val-tool').innerText = (metrics.tool_acc * 100).toFixed(1) + '%';
+    document.getElementById('val-gate').innerText = (metrics.gate_acc * 100).toFixed(1) + '%';
+    document.getElementById('val-rag').innerText = (metrics.ret_prec * 100).toFixed(1) + '%';
+    document.getElementById('val-latency').innerText = (metrics.avg_latency || 0).toFixed(2) + 's';
+    document.getElementById('val-tokens').innerText = (metrics.avg_tokens || 0).toFixed(0) + ' tkn';
+
+    // 2. Set Chart.js Progress Charts
+    const toolAccPercent = metrics.tool_acc * 100;
+    const gateAccPercent = metrics.gate_acc * 100;
+    const retPercent = metrics.ret_prec * 100;
+
+    const ctxAcc = document.getElementById('accuracyChart').getContext('2d');
+    new Chart(ctxAcc, {
+      type: 'bar',
+      data: {
+        labels: ['Tool Selection', 'Gate Logic', 'RAG Precision@3'],
+        datasets: [{
+          label: '정확도 (%)',
+          data: [toolAccPercent, gateAccPercent, retPercent],
+          backgroundColor: ['#6366f1', '#10b981', '#f59e0b'],
+          borderRadius: 8,
+          barThickness: 25,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 100,
+            grid: { color: '#242b35' },
+            ticks: { color: '#9ca3af' }
+          },
+          x: {
+            grid: { display: false },
+            ticks: { color: '#9ca3af' }
+          }
+        }
+      }
+    });
+
+    const passCount = results.filter(it => it.tool_ok && it.gate_ok).length;
+    const failCount = results.length - passCount;
+
+    const ctxPass = document.getElementById('passFailChart').getContext('2d');
+    new Chart(ctxPass, {
+      type: 'doughnut',
+      data: {
+        labels: ['Pass (합격)', 'Fail (실패)'],
+        datasets: [{
+          data: [passCount, failCount],
+          backgroundColor: ['#10b981', '#ef4444'],
+          borderWidth: 0,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: '#9ca3af', font: { family: 'Inter' } }
+          }
+        },
+        cutout: '70%'
+      }
+    });
+
+    // 3. PoC Criteria Status Update
+    document.getElementById('poc-tool-status').innerText = toolAccPercent.toFixed(1) + '% ' + (toolAccPercent >= 100 ? '(통과)' : '(미달)');
+    document.getElementById('poc-tool-status').style.color = toolAccPercent >= 100 ? 'var(--accent)' : 'var(--danger)';
+
+    document.getElementById('poc-gate-status').innerText = gateAccPercent.toFixed(1) + '% ' + (gateAccPercent >= 100 ? '(통과)' : '(미달)');
+    document.getElementById('poc-gate-status').style.color = gateAccPercent >= 100 ? 'var(--accent)' : 'var(--danger)';
+
+    document.getElementById('poc-rag-status').innerText = retPercent.toFixed(1) + '% ' + (retPercent >= 80 ? '(통과)' : '(미달)');
+    document.getElementById('poc-rag-status').style.color = retPercent >= 80 ? 'var(--accent)' : 'var(--danger)';
+
+    // 4. Render rows
+    renderTable();
+  }
+
+  function setFilter(filterType) {
+    currentFilter = filterType;
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('btn-' + filterType).classList.add('active');
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const searchVal = document.getElementById('search-box').value.toLowerCase();
+    renderTable(searchVal);
+  }
+
+  function toggleDetails(id) {
+    const detailRow = document.getElementById('detail-' + id);
+    if (detailRow.style.display === 'table-row') {
+      detailRow.style.display = 'none';
+    } else {
+      detailRow.style.display = 'table-row';
+    }
+  }
+
+  function renderTable(searchTerm = '') {
+    const tbody = document.getElementById('result-rows');
+    tbody.innerHTML = '';
+
+    results.forEach(it => {
+      // Apply search term filter
+      if (searchTerm && !it.query.toLowerCase().includes(searchTerm)) {
+        return;
+      }
+
+      // Apply pass/fail tab filter
+      const isPass = it.tool_ok && it.gate_ok;
+      if (currentFilter === 'pass' && !isPass) return;
+      if (currentFilter === 'fail' && isPass) return;
+
+      const rowId = it.id;
+      
+      const mainRow = document.createElement('tr');
+      mainRow.className = 'clickable-row';
+      mainRow.onclick = () => toggleDetails(rowId);
+
+      const statusBadge = isPass 
+        ? '<span class="badge success">PASS</span>'
+        : '<span class="badge danger">FAIL</span>';
+
+      mainRow.innerHTML = `
+        <td>#${it.id}</td>
+        <td><span class="badge warning">${it.category}</span></td>
+        <td style="max-width:350px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${it.query}</td>
+        <td><code>${it.tool || 'None'}</code></td>
+        <td><code>${it.decision}</code></td>
+        <td>${statusBadge}</td>
+      `;
+
+      const detailRow = document.createElement('tr');
+      detailRow.id = 'detail-' + rowId;
+      detailRow.className = 'details-row';
+
+      const toolStatusText = it.tool_ok ? '성공 (정확함)' : `실패 (기대값: ${it.expected_tool})`;
+      const gateStatusText = it.gate_ok ? '성공 (정확함)' : `실패 (기대값: ${it.expected_gate})`;
+
+      detailRow.innerHTML = `
+        <td colspan="6">
+          <div class="details-grid">
+            <div class="details-block">
+              <h4>상세 비교 결과</h4>
+              <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                <p>선택된 툴: <strong>${it.tool}</strong> (${toolStatusText})</p>
+                <p>가드레일 판정: <strong>${it.decision}</strong> (${gateStatusText})</p>
+                <p style="margin-top:0.25rem; color:#f59e0b;">사유: <em>${it.gate_reason || 'N/A'}</em></p>
+                <p>RAG 적중 여부: <strong>${it.ret_ok === null ? '해당 없음' : (it.ret_ok ? '적중' : '미적중')}</strong></p>
+              </div>
+            </div>
+            <div class="details-block">
+              <h4>원본 질의어</h4>
+              <div>"${it.query}"</div>
+            </div>
+          </div>
+        </td>
+      `;
+
+      tbody.appendChild(mainRow);
+      tbody.appendChild(detailRow);
+    });
+  }
+
+  window.onload = initDashboard;
+</script>
+
+</body>
+</html>

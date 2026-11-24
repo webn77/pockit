@@ -1,30 +1,102 @@
-{"id": 1, "query": "TX1003 거래 8000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 2, "query": "TX1001 거래 12000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 3, "query": "TX1007 거래 5000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 4, "query": "TX1011 거래 3000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 5, "query": "TX1013 거래 64000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 6, "query": "TX1002 거래 45000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 7, "query": "TX1009 거래 250000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 8, "query": "TX1012 거래 780000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
-{"id": 9, "query": "TX1004 거래 1200000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
-{"id": 10, "query": "TX1004 거래 1000000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
-{"id": 11, "query": "TX1015 거래 1200000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
-{"id": 12, "query": "TX1004 거래 1500000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
-{"id": 13, "query": "TX1015 거래 1450000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
-{"id": 14, "query": "TX1015 거래 2000000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
-{"id": 15, "query": "TX1015 거래 1800000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
-{"id": 16, "query": "TX1015 거래 1600000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
-{"id": 17, "query": "TX1001 거래 조회해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
-{"id": 18, "query": "TX1009 거래 내역 보여줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
-{"id": 19, "query": "TX1006 거래 상태 확인해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
-{"id": 20, "query": "TX1015 거래 정보 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
-{"id": 21, "query": "TX1005 거래 조회", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
-{"id": 22, "query": "30만원 카드 결제 수수료 얼마야?", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
-{"id": 23, "query": "50000원 포인트 결제 수수료 계산해줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
-{"id": 24, "query": "1000000원 카드 결제 수수료 계산해줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
-{"id": 25, "query": "20000원 카드 수수료 알려줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
-{"id": 26, "query": "환불 가능 기간이 며칠이야?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "1. 환불 가능 기간", "category": "policy"}
-{"id": 27, "query": "고액 환불 승인 절차 알려줘", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "3. 금액 기준 승인 단계", "category": "policy"}
-{"id": 28, "query": "포인트 결제 수수료 정책이 뭐야?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "1. 결제수단별 수수료율", "category": "policy"}
-{"id": 29, "query": "환불 권한은 누구에게 있어?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "6. 권한", "category": "policy"}
-{"id": 30, "query": "카드 환불은 며칠 걸려?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "5. 결제수단별 환불 처리", "category": "policy"}
+{"id": 1, "query": "TX1001 거래 8000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 2, "query": "TX1002 거래 12000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 3, "query": "TX1003 거래 17000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 4, "query": "TX1004 거래 25000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 5, "query": "TX1005 거래 45000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 6, "query": "TX1006 거래 64000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 7, "query": "TX1007 거래 88000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 8, "query": "TX1008 거래 120000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 9, "query": "TX1009 거래 180000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 10, "query": "TX1010 거래 250000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 11, "query": "TX1011 거래 320000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 12, "query": "TX1012 거래 410000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 13, "query": "TX1013 거래 530000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 14, "query": "TX1014 거래 670000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 15, "query": "TX1015 거래 780000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 16, "query": "TX1016 거래 890000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 17, "query": "TX1017 거래 950000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 18, "query": "TX1018 거래 990000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 19, "query": "TX1019 거래 30000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 20, "query": "TX1020 거래 99000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 21, "query": "TX1021 거래 140000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 22, "query": "TX1022 거래 220000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 23, "query": "TX1023 거래 360000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 24, "query": "TX1024 거래 600000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 25, "query": "TX1025 거래 720000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 26, "query": "TX1026 거래 910000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 27, "query": "TX1027 거래 5000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 28, "query": "TX1028 거래 78000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 29, "query": "TX1029 거래 150000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 30, "query": "TX1030 거래 480000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 31, "query": "TX1031 거래 37000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 32, "query": "TX1032 거래 162000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 33, "query": "TX1033 거래 295000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 34, "query": "TX1034 거래 540000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 35, "query": "TX1035 거래 815000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 36, "query": "TX1036 거래 9900원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 37, "query": "TX1037 거래 21000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 38, "query": "TX1038 거래 333000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 39, "query": "TX1039 거래 660000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 40, "query": "TX1040 거래 875000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "ALLOW", "category": "refund_allow"}
+{"id": 41, "query": "TX1001 거래 1000000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 42, "query": "TX1002 거래 1050000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 43, "query": "TX1003 거래 1150000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 44, "query": "TX1004 거래 1250000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 45, "query": "TX1005 거래 1350000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 46, "query": "TX1006 거래 1480000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 47, "query": "TX1007 거래 1500000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 48, "query": "TX1008 거래 1100000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 49, "query": "TX1009 거래 1300000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 50, "query": "TX1010 거래 1450000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 51, "query": "TX1011 거래 1020000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 52, "query": "TX1012 거래 1420000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 53, "query": "TX1013 거래 1080000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 54, "query": "TX1014 거래 1230000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 55, "query": "TX1015 거래 1390000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 56, "query": "TX1016 거래 1460000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "REVIEW", "category": "refund_review"}
+{"id": 57, "query": "TX1001 거래 1550000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 58, "query": "TX1002 거래 1700000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 59, "query": "TX1003 거래 1850000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 60, "query": "TX1004 거래 2000000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 61, "query": "TX1005 거래 2500000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 62, "query": "TX1006 거래 3000000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 63, "query": "TX1007 거래 1600000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 64, "query": "TX1008 거래 2200000원 환불 부탁해", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 65, "query": "TX1009 거래 2800000원 환불 요청", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 66, "query": "TX1010 거래 1900000원 환불 진행해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 67, "query": "TX1011 거래 1750000원 환불해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 68, "query": "TX1012 거래 2350000원 환불 처리해줘", "role": "agent", "expected_tool": "issue_refund", "expected_gate": "BLOCK", "category": "refund_block"}
+{"id": 69, "query": "TX1001 거래 내역 조회해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 70, "query": "TX1002 거래 정보 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 71, "query": "TX1003 결제 내역 확인해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 72, "query": "TX1004 이 거래 상태 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 73, "query": "TX1005 거래 내역 조회해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 74, "query": "TX1006 거래 정보 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 75, "query": "TX1007 결제 내역 확인해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 76, "query": "TX1008 이 거래 상태 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 77, "query": "TX1009 거래 내역 조회해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 78, "query": "TX1010 거래 정보 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 79, "query": "TX1011 결제 내역 확인해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 80, "query": "TX1012 이 거래 상태 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 81, "query": "TX1013 거래 내역 조회해줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 82, "query": "TX1014 거래 정보 알려줘", "role": "agent", "expected_tool": "get_transaction", "expected_gate": "ALLOW", "category": "lookup"}
+{"id": 83, "query": "카드 결제 10만원 수수료 얼마야?", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 84, "query": "포인트 결제 5만원 수수료 계산해줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 85, "query": "30만원 카드 결제 수수료 알려줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 86, "query": "거래액 100만원 수수료 계산", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 87, "query": "카드로 7만원 결제하면 수수료 얼마?", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 88, "query": "20만원 결제 수수료 산정해줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 89, "query": "수수료 50만원 기준으로 계산해줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 90, "query": "포인트 결제 3만원 수수료는?", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 91, "query": "15만원 카드 결제 수수료 알려줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 92, "query": "거래액 80만원 수수료 계산해줘", "role": "agent", "expected_tool": "calc_fee", "expected_gate": "ALLOW", "category": "fee"}
+{"id": 93, "query": "환불 가능 기간이 며칠이야?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "1. 환불 가능 기간", "category": "policy"}
+{"id": 94, "query": "어떤 상태의 결제만 환불돼?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "2. 환불 가능 상태", "category": "policy"}
+{"id": 95, "query": "고액 환불 승인 절차 알려줘", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "3. 금액 기준 승인 단계", "category": "policy"}
+{"id": 96, "query": "부분 환불도 가능해?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "4. 부분 환불", "category": "policy"}
+{"id": 97, "query": "결제수단별 환불 처리 방식 알려줘", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "5. 결제수단별 환불 처리", "category": "policy"}
+{"id": 98, "query": "환불 권한은 누구에게 있어?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "6. 권한 (RBAC)", "category": "policy"}
+{"id": 99, "query": "결제수단별 수수료율이 어떻게 돼?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "1. 결제수단별 수수료율", "category": "policy"}
+{"id": 100, "query": "수수료 계산 기준이 뭐야?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "2. 수수료 계산 기준", "category": "policy"}
+{"id": 101, "query": "수수료도 환불되나요?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "3. 수수료 환불", "category": "policy"}
+{"id": 102, "query": "정산 주기는 어떻게 돼?", "role": "agent", "expected_tool": "search_policy", "expected_gate": "ALLOW", "expected_section": "4. 정산 주기", "category": "policy"}
